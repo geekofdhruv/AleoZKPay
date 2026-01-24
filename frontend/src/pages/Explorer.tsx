@@ -7,7 +7,30 @@ import { Input } from '../components/ui/Input';
 const Explorer = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
 
+    // Fetch Data
+    useEffect(() => {
+        loadData();
+    }, [activeFilter]);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            // Filter mapping: 'all' -> undefined, 'pending' -> 'PENDING'
+            const statusFilter = activeFilter === 'all' ? undefined : activeFilter.toUpperCase();
+            const data = await fetchInvoices({ status: statusFilter });
+            setInvoices(data);
+        } catch (e) {
+            console.error("Failed to load invoices", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Calculate Stats from Real Data
+    // Note: In a production app, these should come from a stats endpoint to avoid downloading everything.
     const stats = [
         { label: 'Total Invoices', value: '1,234', trend: '+12%' },
         { label: 'Pending', value: '156', trend: '-5%' },
@@ -16,13 +39,10 @@ const Explorer = () => {
         { label: '24h Volume', value: '$50,000', trend: '+8%' },
     ];
 
-    const mockInvoices = [
-        { hash: '0x7f8a...3d2f', status: 'PENDING', created: '2h ago', expiry: '2h left', block: '#123456' },
-        { hash: '0x9abc...1e4g', status: 'SETTLED', created: '5h ago', expiry: 'Paid', block: '#123450' },
-        { hash: '0x2def...8h9i', status: 'EXPIRED', created: '1d ago', expiry: 'Expired', block: '#123400' },
-        { hash: '0x5ghi...2j3k', status: 'SETTLED', created: '2d ago', expiry: 'Paid', block: '#123389' },
-        { hash: '0x8lmn...5o6p', status: 'PENDING', created: '3m ago', expiry: '24h left', block: '#123458' },
-    ] as const;
+    const filteredInvoices = invoices.filter(inv =>
+        inv.invoice_hash.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (inv.merchant && inv.merchant.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
 
     const containerVariants = {
         hidden: { opacity: 0 },
