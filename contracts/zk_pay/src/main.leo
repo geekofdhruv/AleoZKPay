@@ -1,6 +1,6 @@
 import credits.aleo;
 
-program zk_pay_proofs_privacy_v4.aleo {
+program zk_pay_proofs_privacy_v5.aleo {
 
     @noupgrade
     async constructor() {
@@ -13,6 +13,7 @@ program zk_pay_proofs_privacy_v4.aleo {
     }
 
     mapping invoices: field => InvoiceData;
+    mapping salt_to_invoice: field => field;
 
     async transition create_invoice(
         private merchant: address,
@@ -29,12 +30,13 @@ program zk_pay_proofs_privacy_v4.aleo {
 
         let invoice_hash: field = merchant_hash + amount_hash + salt_hash;
 
-        return (invoice_hash, finalize_create_invoice(invoice_hash, expiry_hours));
+        return (invoice_hash, finalize_create_invoice(invoice_hash, expiry_hours, salt));
     }
 
     async function finalize_create_invoice(
         invoice_hash: field,
-        expiry_hours: u32
+        expiry_hours: u32,
+        salt: field
     ) {
         let blocks_to_add: u32 = expiry_hours * 360u32;
         let expiry_height: u32 =
@@ -46,6 +48,7 @@ program zk_pay_proofs_privacy_v4.aleo {
         };
 
         invoices.set(invoice_hash, invoice_data);
+        salt_to_invoice.set(salt, invoice_hash);
     }
 
     async transition pay_invoice(

@@ -1,5 +1,5 @@
 import credits.aleo;
-program zk_pay_proofs_privacy_v4.aleo;
+program zk_pay_proofs_privacy_v5.aleo;
 
 struct InvoiceData:
     expiry_height as u32;
@@ -8,6 +8,10 @@ struct InvoiceData:
 mapping invoices:
     key as field.public;
     value as InvoiceData.public;
+
+mapping salt_to_invoice:
+    key as field.public;
+    value as field.public;
 
 function create_invoice:
     input r0 as address.private;
@@ -21,19 +25,21 @@ function create_invoice:
     hash.bhp256 r2 into r8 as field;
     add r6 r7 into r9;
     add r9 r8 into r10;
-    async create_invoice r10 r3 into r11;
+    async create_invoice r10 r3 r2 into r11;
     output r10 as field.public;
-    output r11 as zk_pay_proofs_privacy_v4.aleo/create_invoice.future;
+    output r11 as zk_pay_proofs_privacy_v5.aleo/create_invoice.future;
 
 finalize create_invoice:
     input r0 as field.public;
     input r1 as u32.public;
-    mul r1 360u32 into r2;
-    is.neq r1 0u32 into r3;
-    add block.height r2 into r4;
-    ternary r3 r4 0u32 into r5;
-    cast r5 0u8 into r6 as InvoiceData;
-    set r6 into invoices[r0];
+    input r2 as field.public;
+    mul r1 360u32 into r3;
+    is.neq r1 0u32 into r4;
+    add block.height r3 into r5;
+    ternary r4 r5 0u32 into r6;
+    cast r6 0u8 into r7 as InvoiceData;
+    set r7 into invoices[r0];
+    set r0 into salt_to_invoice[r2];
 
 function pay_invoice:
     input r0 as credits.aleo/credits.record;
@@ -53,7 +59,7 @@ function pay_invoice:
     async pay_invoice r4 into r14;
     output r5 as credits.aleo/credits.record;
     output r6 as credits.aleo/credits.record;
-    output r14 as zk_pay_proofs_privacy_v4.aleo/pay_invoice.future;
+    output r14 as zk_pay_proofs_privacy_v5.aleo/pay_invoice.future;
 
 finalize pay_invoice:
     input r0 as field.public;
@@ -72,7 +78,7 @@ finalize pay_invoice:
 function get_invoice_status:
     input r0 as field.public;
     async get_invoice_status r0 into r1;
-    output r1 as zk_pay_proofs_privacy_v4.aleo/get_invoice_status.future;
+    output r1 as zk_pay_proofs_privacy_v5.aleo/get_invoice_status.future;
 
 finalize get_invoice_status:
     input r0 as field.public;

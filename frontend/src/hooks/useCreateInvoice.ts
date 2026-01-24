@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { useWallet } from '@provablehq/aleo-wallet-adaptor-react';
 import { TransactionOptions } from '@provablehq/aleo-types';
-import { generateSalt } from '../utils/aleo-utils';
+import { generateSalt, getInvoiceHashFromMapping } from '../utils/aleo-utils';
 import { InvoiceData } from '../types/invoice';
 
 export const useCreateInvoice = () => {
-    // Adapter properties
     const { address, executeTransaction, transactionStatus, requestTransactionHistory } = useWallet();
-
-    // Alias address to publicKey for compatibility with existing logic
     const publicKey = address;
 
     const [amount, setAmount] = useState<number | ''>('');
@@ -32,11 +29,9 @@ export const useCreateInvoice = () => {
         setStatus('Initializing invoice creation...');
 
         try {
-            // 1. Generate Random Salt
             const merchant = publicKey;
             const salt = generateSalt();
-
-            // 2. Request Transaction
+            console.log('this is the salt', salt);
             setStatus('Requesting wallet signature...');
             const microcredits = Math.round(Number(amount) * 1_000_000);
 
@@ -48,7 +43,7 @@ export const useCreateInvoice = () => {
             ];
 
             const transaction: TransactionOptions = {
-                program: 'zk_pay_proofs_privacy_v4.aleo',
+                program: 'zk_pay_proofs_privacy_v5.aleo',
                 function: 'create_invoice',
                 inputs: inputs,
                 fee: 100_000
@@ -114,9 +109,26 @@ export const useCreateInvoice = () => {
                                 // Strategy 1: Use hash grabbed from status polling (Best for No-Permission/No-Password)
                                 let hash = hashFromStatus;
 
-                                // Strategy 2: If not found, try History API (Requires Permission)
+                                // Strategy 2: If not found, try On-Chain Mapping (Robust, Canonical)
                                 if (!hash) {
-                                    console.log("Hash not found in status, attempting history lookup...");
+                                    console.log("Hash not found in status, attempting on-chain mapping lookup...");
+                                    try {
+                                        // Poll mapping since it might take a moment after status='accepted'
+                                        // for the node to index the mapping change
+                                        let attempts = 0;
+                                        while (!hash && attempts < 5) {
+                                            hash = await getInvoiceHashFromMapping(salt);
+                                            if (!hash) await new Promise(r => setTimeout(r, 2000));
+                                            attempts++;
+                                        }
+                                    } catch (err) {
+                                        console.warn("Mapping lookup failed:", err);
+                                    }
+                                }
+
+                                // Strategy 3: History API (Requires Permission)
+                                if (!hash) {
+                                    console.log("Hash not found via mapping, attempting history lookup...");
                                     try {
                                         hash = await getInvoiceHashFromWallet(finalTransactionId);
                                     } catch (err: any) {
@@ -124,7 +136,7 @@ export const useCreateInvoice = () => {
                                     }
                                 }
 
-                                // Strategy 3: Public Chain API (Fallback for nopw)
+                                // Strategy 4: Public Chain API (Fallback)
                                 if (!hash) {
                                     console.log("Hash not found via wallet, attempting public chain fetch...");
                                     try {
@@ -174,6 +186,31 @@ export const useCreateInvoice = () => {
         }
     };
 
+    // Helper to fetch from On-Chain Mapping (Robust, no permissions needed)
+    const getInvoiceHashFromMapping = async (salt: string): Promise<string | null> => {
+        console.log(`Checking salt mapping for ${salt}...`);
+        try {
+            const programId = 'zk_pay_proofs_privacy_v5.aleo';
+            const mappingName = 'salt_to_invoice';
+            const url = `https://api.provable.com/v2/testnet/program/${programId}/mapping/${mappingName}/${salt}`;
+
+            const response = await fetch(url);
+            if (!response.ok) return null; // Likely 404 if not yet finalized
+
+            const val = await response.json();
+            console.log(val);
+            // Value is often returned as a string representation of the field
+            if (val) {
+                console.log("✅ Found Hash via On-Chain Mapping!");
+                // Remove quotes if present
+                return val.toString().replace(/(['"])/g, '');
+            }
+        } catch (e) {
+            console.warn("Mapping lookup failed:", e);
+        }
+        return null;
+    };
+
     // Helper to fetch from Public API (Fall back for No-Auth/No-PW)
     const getInvoiceHashFromChain = async (finalTxId: string): Promise<string | null> => {
         const safeTxId = finalTxId.replace(/['"]+/g, '').trim();
@@ -210,14 +247,9 @@ export const useCreateInvoice = () => {
                 if (!historyPermissionDenied) {
                     try {
                         if (requestTransactionHistory) {
-                            // console.log("Attempting history lookup...");
-                            const history = await requestTransactionHistory('zk_pay_proofs_privacy_v4.aleo');
+                            const history = await requestTransactionHistory('zk_pay_proofs_privacy_v5.aleo');
                             const foundTx = history.transactions.find((t: any) => t.transactionId === safeTxId || t.id === safeTxId);
 
-                            // Note: TxHistoryResult definition in Step 92 says 'transactions: Array<{ transactionId, id }>'
-                            // It does NOT explicitly show execution/outputs. 
-                            // However, we rely on the object potentially having more data or using a legacy 'execution' prop if available on the runtime object.
-                            // If strictly typed, we might need 'any' cast.
                             const txAny = foundTx as any;
                             if (txAny && txAny.execution?.transitions?.[0]?.outputs?.[0]?.value) {
                                 console.log("✅ Found Hash via Wallet History!");
@@ -238,7 +270,7 @@ export const useCreateInvoice = () => {
                     }
                 }
             } catch (e: any) {
-                // ... error handling
+                // Ignore transient errors
             }
 
             // Wait before next retry

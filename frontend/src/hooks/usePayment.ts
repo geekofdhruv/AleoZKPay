@@ -221,7 +221,7 @@ export const usePayment = () => {
             console.log("Transaction Inputs:", inputs);
 
             const transaction: TransactionOptions = {
-                program: 'zk_pay_proofs_privacy_v4.aleo', // Ensure v3
+                program: 'zk_pay_proofs_privacy_v5.aleo', // Ensure v3
                 function: 'pay_invoice',
                 inputs: inputs,
                 fee: 100_000
