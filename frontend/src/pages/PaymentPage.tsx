@@ -48,7 +48,7 @@ const PaymentPage = () => {
                     if (s.key === step) isActive = true;
                     if (steps.findIndex(x => x.key === s.key) < currentIndex) isActive = true;
                     if (step === 'CONVERT' && s.key === 'PAY') isActive = true;
-                    if (step === 'SUCCESS' && s.key === 'PAY') isActive = true;
+                    if ((step === 'SUCCESS' || step === 'ALREADY_PAID') && s.key === 'PAY') isActive = true;
 
                     return (
                         <span key={s.key} className={`text-label ${isActive ? 'text-highlight' : ''}`}>
@@ -65,10 +65,35 @@ const PaymentPage = () => {
             <div style={{ width: '100%', maxWidth: '480px' }}>
 
                 {/* STATUS HEADER */}
-                <div className="text-center mb-8">
-                    <h1 className="text-gradient" style={{ fontSize: '36px' }}>
-                        {step === 'SUCCESS' ? 'Payment Successful' : 'Pay Invoice'}
+                <div className="text-center mb-6">
+                    <h1 className="text-gradient mb-2" style={{ fontSize: '36px' }}>
+                        {step === 'SUCCESS' ? 'Payment Successful' : step === 'ALREADY_PAID' ? 'Invoice Paid' : 'Pay Invoice'}
                     </h1>
+                    {/* VERIFIED BADGE */}
+                    {invoice && !error && (
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                            <svg
+                                className="text-green-400"
+                                style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    minWidth: '20px',
+                                    filter: 'drop-shadow(0 0 8px rgba(74, 222, 128, 0.5))'
+                                }}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span
+                                className="text-sm font-medium text-green-400 tracking-wide"
+                                style={{ textShadow: '0 0 12px rgba(74, 222, 128, 0.4)' }}
+                            >
+                                Verified Invoice
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="glass-card">
@@ -96,27 +121,39 @@ const PaymentPage = () => {
                     {renderStepIndicator()}
 
                     {/* ACTION AREA */}
-                    {step === 'SUCCESS' ? (
+                    {(step === 'SUCCESS' || step === 'ALREADY_PAID') ? (
                         <div className="text-center">
-                            <p className="text-small mb-6">The transaction has been settled on-chain.</p>
-                            <a
-                                href={`https://explorer.aleo.org/testnet/transaction/${currentStatus}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="btn-primary inline-block"
-                                style={{ textDecoration: 'none' }}
-                            >
-                                View Transaction
-                            </a>
+                            <p className="text-small mb-6">
+                                {step === 'ALREADY_PAID'
+                                    ? 'This invoice has already been settled on-chain.'
+                                    : 'The transaction has been settled on-chain.'}
+                            </p>
+                            {txId && (
+                                <a
+                                    href={`https://explorer.aleo.org/testnet/transaction/${txId}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="btn-primary inline-block"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    View Transaction
+                                </a>
+                            )}
                         </div>
                     ) : (
                         <div className="mt-6">
                             {/* ERROR MESSAGE */}
-                            {currentStatus && !currentStatus.startsWith('at1') && (
-                                <p className="text-error text-center mb-4 text-sm">{currentStatus}</p>
+                            {error ? (
+                                <div className="p-4 mb-6 bg-red-900/20 border border-red-500/50 rounded-lg">
+                                    <p className="text-red-400 text-center text-sm font-medium">{error}</p>
+                                </div>
+                            ) : (
+                                currentStatus && !currentStatus.startsWith('at1') && (
+                                    <p className="text-secondary text-center mb-4 text-sm font-mono">{currentStatus}</p>
+                                )
                             )}
 
-                            {step === 'CONNECT' && (
+                            {!error && step === 'CONNECT' && (
                                 <div className="flex-center">
                                     <WalletMultiButton className="btn-primary" />
                                     {address && (

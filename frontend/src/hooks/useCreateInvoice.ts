@@ -43,7 +43,7 @@ export const useCreateInvoice = () => {
             ];
 
             const transaction: TransactionOptions = {
-                program: 'zk_pay_proofs_privacy_v5.aleo',
+                program: 'zk_pay_proofs_privacy_v6.aleo',
                 function: 'create_invoice',
                 inputs: inputs,
                 fee: 100_000
@@ -73,30 +73,23 @@ export const useCreateInvoice = () => {
 
                     try {
                         const statusResponse = await transactionStatus(txId);
-                        console.log('🔍 [Polling] Status Response:', JSON.stringify(statusResponse, null, 2));
 
-                        let currentStatus = '';
+                        // Robust Type Safety for status property
+                        const currentStatus = typeof statusResponse === 'string'
+                            ? (statusResponse as string).toLowerCase()
+                            : (statusResponse as any)?.status?.toLowerCase();
 
-                        // Handle both string and object responses (Adapter variations)
-                        if (typeof statusResponse === 'string') {
-                            console.log('👉 [Polling] Status is string:', statusResponse);
-                            currentStatus = (statusResponse as string).toLowerCase();
-                        } else if (statusResponse && typeof statusResponse === 'object') {
-                            console.log('👉 [Polling] Status is object');
-                            currentStatus = (statusResponse as any).status.toLowerCase();
-                            // Capture the final on-chain ID if provided
-                            if (statusResponse.transactionId) {
-                                finalTransactionId = statusResponse.transactionId;
-                                console.log('🆔 [Polling] On-chain Transaction ID updated:', finalTransactionId);
-                            }
-                            const responseAny = statusResponse as any;
-                            if (responseAny.execution?.transitions?.[0]?.outputs?.[0]?.value) {
-                                console.log("✅ [Polling] Found Hash via Transaction Status Direct!");
-                                hashFromStatus = responseAny.execution.transitions[0].outputs[0].value;
-                                console.log("📦 [Polling] Extracted Hash:", hashFromStatus);
-                            } else {
-                                console.log("⚠️ [Polling] Execution data or hash not found in status object");
-                            }
+                        console.log('🔍 [Polling] Status:', currentStatus);
+
+                        // Capture the final on-chain ID if provided in object response
+                        if (typeof statusResponse === 'object' && (statusResponse as any).transactionId) {
+                            finalTransactionId = (statusResponse as any).transactionId;
+                        }
+
+                        // Try to extract hash from execution outputs if available (Optimization)
+                        const responseAny = statusResponse as any;
+                        if (responseAny?.execution?.transitions?.[0]?.outputs?.[0]?.value) {
+                            hashFromStatus = responseAny.execution.transitions[0].outputs[0].value;
                         }
 
                         if (currentStatus !== 'pending' && currentStatus !== 'processing' && currentStatus !== 'submitted') {
@@ -156,8 +149,7 @@ export const useCreateInvoice = () => {
                                 const params = new URLSearchParams({
                                     merchant,
                                     amount: amount.toString(),
-                                    salt,
-                                    hash
+                                    salt
                                 });
                                 if (memo) params.append('memo', memo);
                                 const link = `${window.location.origin}/pay?${params.toString()}`;
@@ -187,29 +179,7 @@ export const useCreateInvoice = () => {
     };
 
     // Helper to fetch from On-Chain Mapping (Robust, no permissions needed)
-    const getInvoiceHashFromMapping = async (salt: string): Promise<string | null> => {
-        console.log(`Checking salt mapping for ${salt}...`);
-        try {
-            const programId = 'zk_pay_proofs_privacy_v5.aleo';
-            const mappingName = 'salt_to_invoice';
-            const url = `https://api.provable.com/v2/testnet/program/${programId}/mapping/${mappingName}/${salt}`;
 
-            const response = await fetch(url);
-            if (!response.ok) return null; // Likely 404 if not yet finalized
-
-            const val = await response.json();
-            console.log(val);
-            // Value is often returned as a string representation of the field
-            if (val) {
-                console.log("✅ Found Hash via On-Chain Mapping!");
-                // Remove quotes if present
-                return val.toString().replace(/(['"])/g, '');
-            }
-        } catch (e) {
-            console.warn("Mapping lookup failed:", e);
-        }
-        return null;
-    };
 
     // Helper to fetch from Public API (Fall back for No-Auth/No-PW)
     const getInvoiceHashFromChain = async (finalTxId: string): Promise<string | null> => {
@@ -247,7 +217,7 @@ export const useCreateInvoice = () => {
                 if (!historyPermissionDenied) {
                     try {
                         if (requestTransactionHistory) {
-                            const history = await requestTransactionHistory('zk_pay_proofs_privacy_v5.aleo');
+                            const history = await requestTransactionHistory('zk_pay_proofs_privacy_v6.aleo');
                             const foundTx = history.transactions.find((t: any) => t.transactionId === safeTxId || t.id === safeTxId);
 
                             const txAny = foundTx as any;

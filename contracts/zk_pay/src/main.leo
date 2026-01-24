@@ -1,6 +1,6 @@
 import credits.aleo;
 
-program zk_pay_proofs_privacy_v5.aleo {
+program zk_pay_proofs_privacy_v6.aleo {
 
     @noupgrade
     async constructor() {
@@ -55,8 +55,7 @@ program zk_pay_proofs_privacy_v5.aleo {
         pay_record: credits.aleo/credits,
         merchant: address,
         amount: u64,
-        salt: field,
-        public invoice_hash: field
+        salt: field
     ) -> (credits.aleo/credits, credits.aleo/credits, Future) {
         let (r1, r2): (credits.aleo/credits, credits.aleo/credits) = 
             credits.aleo/transfer_private(pay_record, merchant, amount);
@@ -69,14 +68,21 @@ program zk_pay_proofs_privacy_v5.aleo {
         
         let computed_hash: field = merchant_hash + amount_hash + salt_hash;
 
-        assert_eq(invoice_hash, computed_hash);
-
-        let f0: Future = finalize_pay_invoice(invoice_hash);
+        let f0: Future = finalize_pay_invoice(computed_hash, salt);
         return (r1, r2, f0);
     }
 
-    async function finalize_pay_invoice(invoice_hash: field) {
-        let invoice_data: InvoiceData = invoices.get(invoice_hash);
+    async function finalize_pay_invoice(
+        computed_hash: field, 
+        salt: field
+    ) {
+        // Enforce that the provided salt maps to an invoice
+        let stored_hash: field = salt_to_invoice.get(salt);
+        
+        // Ensure the computed parameters match the registered invoice for this salt
+        assert_eq(computed_hash, stored_hash);
+
+        let invoice_data: InvoiceData = invoices.get(stored_hash);
 
         if invoice_data.expiry_height != 0u32 {
             assert(block.height <= invoice_data.expiry_height);
@@ -89,7 +95,7 @@ program zk_pay_proofs_privacy_v5.aleo {
             status: 1u8
         };
 
-        invoices.set(invoice_hash, updated_data);
+        invoices.set(stored_hash, updated_data);
     }
 
     async transition get_invoice_status(
