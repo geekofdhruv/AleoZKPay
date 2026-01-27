@@ -29,7 +29,7 @@ const Navbar = () => {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xl font-bold text-white tracking-tight group-hover:text-neon-primary transition-colors duration-300">
-                            AleoZKPay
+                            NullPay
                         </span>
                         <span className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">Privacy First</span>
                     </div>

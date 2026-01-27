@@ -1,11 +1,7 @@
 import React, { useMemo } from "react";
 import { AleoWalletProvider as ProvableWalletProvider } from "@provablehq/aleo-wallet-adaptor-react";
 import { WalletModalProvider } from "@provablehq/aleo-wallet-adaptor-react-ui";
-import { LeoWalletAdapter } from "@provablehq/aleo-wallet-adaptor-leo";
-import { PuzzleWalletAdapter } from "@provablehq/aleo-wallet-adaptor-puzzle";
 import { ShieldWalletAdapter } from "@provablehq/aleo-wallet-adaptor-shield";
-import { FoxWalletAdapter } from "@provablehq/aleo-wallet-adaptor-fox";
-import { SoterWalletAdapter } from "@provablehq/aleo-wallet-adaptor-soter";
 import {
     DecryptPermission,
 } from "@provablehq/aleo-wallet-adaptor-core";
@@ -19,20 +15,8 @@ interface AleoWalletProviderProps {
 export const AleoWalletProvider = ({ children }: AleoWalletProviderProps) => {
     const wallets = useMemo(
         () => [
-            new LeoWalletAdapter({
-                appName: 'AleoZKPay Beta',
-            }),
-            new PuzzleWalletAdapter({
-                appName: 'AleoZKPay Beta',
-            }),
             new ShieldWalletAdapter({
-                appName: 'AleoZKPay Beta'
-            }),
-            new FoxWalletAdapter({
-                appName: 'AleoZKPay Beta'
-            }),
-            new SoterWalletAdapter({
-                appName: 'AleoZKPay Beta'
+                appName: 'NullPay'
             }),
         ],
         []
