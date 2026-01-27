@@ -5,7 +5,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 /*
  * ALEO ZKPAY - COMPREHENSIVE TECHNICAL DOCUMENTATION
  * ==========================================================
- * This document serves as the authoritative source of truth for the entire AleoZKPay protocol.
+ * This document serves as the authoritative source of truth for the entire NullPay protocol.
  * It details every component, every hook, every smart contract transition, and every
  * utilty function used in the production environment.
  * 
@@ -87,7 +87,7 @@ const Docs = () => {
                         Protocol <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Specification</span>
                     </h1>
                     <p className="text-gray-300 text-lg md:text-xl max-w-3xl leading-relaxed">
-                        The definitive technical reference for the AleoZKPay decentralized payment protocol.
+                        The definitive technical reference for the NullPay decentralized payment protocol.
                         This document provides exhaustive detail on the implementation of Zero-Knowledge Proofs for private financial settlements.
                     </p>
                 </motion.div>
@@ -125,7 +125,7 @@ const Docs = () => {
                             <GlassCard className="p-10">
                                 <h2 className="text-3xl font-bold text-white mb-6">1. Protocol Architecture</h2>
                                 <p className="text-gray-400 mb-8 leading-relaxed">
-                                    AleoZKPay operates as a Layer-2 privacy application on top of the Aleo Layer-1 blockchain.
+                                    NullPay operates as a Layer-2 privacy application on top of the Aleo Layer-1 blockchain.
                                     The architecture is designed to minimize on-chain data leakage while ensuring verifiable settlement correctness.
                                     The system is composed of three primary layers:
                                 </p>
