@@ -56,33 +56,51 @@ const Docs = () => {
     );
 
     return (
-        <div className="page-container min-h-screen">
+        <div className="page-container relative min-h-screen">
+            <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] animate-float" />
+                <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-800/20 rounded-full blur-[100px] animate-float-delayed" />
+                <div className="absolute bottom-[-10%] left-[20%] w-[35%] h-[35%] bg-white/5 rounded-full blur-[120px] animate-pulse-slow" />
+            </div>
+
+            {/* ALEO GLOBE BACKGROUND */}
+            <div className="absolute top-[-150px] left-1/2 -translate-x-1/2 w-screen h-[800px] z-0 pointer-events-none flex justify-center overflow-hidden">
+                <img
+                    src="/assets/aleo_globe.png"
+                    alt="Aleo Globe"
+                    className="w-full h-full object-cover opacity-50 mix-blend-screen mask-image-gradient-b"
+                    style={{
+                        maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
+                    }}
+                />
+            </div>
             <motion.div
                 initial="hidden"
                 animate="visible"
                 variants={containerVariants}
-                className="w-full max-w-7xl mx-auto pt-12 pb-20 px-6"
+                className="w-full max-w-7xl mx-auto pt-12 pb-20 px-6 relative z-10"
             >
-                {/* HEADER */}
-                <motion.div variants={itemVariants} className="text-left mb-12 border-b border-white/10 pb-10">
-                    <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tighter">
-                        Protocol <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-primary to-neon-accent animate-shine bg-[length:200%_auto]">Specification</span>
+                {/* HEADER - CENTERED */}
+                <motion.div variants={itemVariants} className="text-center mb-12 border-b border-white/10 pb-10 flex flex-col items-center">
+                    <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tighter text-white">
+                        Protocol <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Specification</span>
                     </h1>
-                    <p className="text-gray-300 text-lg md:text-xl max-w-4xl leading-relaxed">
+                    <p className="text-gray-300 text-lg md:text-xl max-w-3xl leading-relaxed">
                         The definitive technical reference for the AleoZKPay decentralized payment protocol.
                         This document provides exhaustive detail on the implementation of Zero-Knowledge Proofs for private financial settlements.
                     </p>
                 </motion.div>
 
-                {/* TABS */}
-                <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-12 sticky top-24 z-50 bg-black/50 backdrop-blur-xl p-4 rounded-2xl border border-white/5">
+                {/* TABS - CENTERED */}
+                <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-4 mb-12 sticky top-24 z-50 bg-black/50 backdrop-blur-xl p-4 rounded-full border border-white/5 max-w-4xl mx-auto">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${activeTab === tab.id
-                                ? 'bg-neon-primary text-black shadow-[0_0_20px_rgba(0,243,255,0.3)]'
-                                : 'bg-black/30 text-gray-400 border border-white/10 hover:border-neon-primary/50 hover:text-white'
+                            className={`px-6 py-2 rounded-full font-bold transition-all duration-300 ${activeTab === tab.id
+                                ? 'bg-white text-black shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             {tab.label}
@@ -349,44 +367,44 @@ if (!payRecord) {
                             animate={{ opacity: 1, x: 0 }}
                             className="grid grid-cols-1 md:grid-cols-2 gap-8"
                         >
-                            <GlassCard className="p-8 border-t-4 border-t-red-500">
+                            <GlassCard className="p-8 border-t-4 border-t-zinc-600">
                                 <h2 className="text-2xl font-bold text-white mb-4">Threat Model Analysis</h2>
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-red-400 font-bold text-sm uppercase tracking-wider mb-2">1. The Salt Brute-Force Attack</h3>
-                                        <p className="text-sm text-gray-400">
+                                        <h3 className="text-gray-400 font-bold text-sm uppercase tracking-wider mb-2">1. The Salt Brute-Force Attack</h3>
+                                        <p className="text-sm text-gray-500">
                                             <strong>Attack Vector:</strong> An adversary attempts to guess the <code>(Merchant, Amount)</code> pair by hashing all possible combinations and comparing them to on-chain hashes.
                                         </p>
-                                        <p className="text-green-400 text-sm mt-2 border-l-2 border-green-500 pl-3">
+                                        <p className="text-white text-sm mt-2 border-l-2 border-white pl-3">
                                             <strong>Mitigation:</strong> We utilize a **128-bit random salt**. The search space is <code>2^128</code>, which is thermodynamically impossible to brute-force with current or near-future computing power.
                                         </p>
                                     </div>
 
                                     <div>
-                                        <h3 className="text-red-400 font-bold text-sm uppercase tracking-wider mb-2">2. Double Spending</h3>
-                                        <p className="text-sm text-gray-400">
+                                        <h3 className="text-gray-400 font-bold text-sm uppercase tracking-wider mb-2">2. Double Spending</h3>
+                                        <p className="text-sm text-gray-500">
                                             <strong>Attack Vector:</strong> A user tries to pay an invoice twice, or use the same credits record for two different payments.
                                         </p>
-                                        <p className="text-green-400 text-sm mt-2 border-l-2 border-green-500 pl-3">
+                                        <p className="text-white text-sm mt-2 border-l-2 border-white pl-3">
                                             <strong>Mitigation:</strong> Aleo's native consensus handles record serial numbers (nonces). Once a record is consumed in `pay_invoice`, its serial number is revealed on-chain, preventing any future use.
                                         </p>
                                     </div>
                                 </div>
                             </GlassCard>
 
-                            <GlassCard className="p-8 border-t-4 border-t-green-500">
+                            <GlassCard className="p-8 border-t-4 border-t-white">
                                 <h2 className="text-2xl font-bold text-white mb-4">Cryptographic Properties</h2>
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-green-400 font-bold text-sm uppercase tracking-wider mb-2">1. Collision Resistance (BHP256)</h3>
-                                        <p className="text-sm text-gray-400">
+                                        <h3 className="text-white font-bold text-sm uppercase tracking-wider mb-2">1. Collision Resistance (BHP256)</h3>
+                                        <p className="text-sm text-gray-500">
                                             We rely on the **Bowed-Mercurial Hash (BHP256)**, a variant of Pedersen Hash optimized for SNARK circuits. It provides collision resistance suitable for 128-bit security levels.
                                         </p>
                                     </div>
 
                                     <div>
-                                        <h3 className="text-green-400 font-bold text-sm uppercase tracking-wider mb-2">2. Zero-Knowledge Soundness</h3>
-                                        <p className="text-sm text-gray-400">
+                                        <h3 className="text-white font-bold text-sm uppercase tracking-wider mb-2">2. Zero-Knowledge Soundness</h3>
+                                        <p className="text-sm text-gray-500">
                                             The proving system (Marlin/Varuna) guarantees that it is computationally infeasible to generate a valid proof for `pay_invoice` unless the prover actually knows the witness data (the record and salt).
                                         </p>
                                     </div>
