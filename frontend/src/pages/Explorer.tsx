@@ -4,6 +4,7 @@ import StatusBadge from '../components/StatusBadge';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Input } from '../components/ui/Input';
 import { useTransactions } from '../hooks/useTransactions';
+import { pageVariants, staggerContainer, fadeInUp, scaleIn } from '../utils/animations';
 
 const Explorer = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -44,18 +45,8 @@ const Explorer = () => {
         return matchesFilter && matchesSearch;
     });
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+    const containerVariants = staggerContainer;
+    const itemVariants = fadeInUp;
 
     const openExplorer = (txId?: string) => {
         if (txId) {
@@ -97,7 +88,13 @@ const Explorer = () => {
     };
 
     return (
-        <div className="page-container relative min-h-screen">
+        <motion.div
+            className="page-container relative min-h-screen"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+        >
             <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] animate-float" />
                 <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-800/20 rounded-full blur-[100px] animate-float-delayed" />
@@ -117,16 +114,18 @@ const Explorer = () => {
                 />
             </div>
 
+
             <motion.div
-                initial="hidden"
-                animate="visible"
                 variants={containerVariants}
+                initial="hidden"
+                animate="show"
                 className="w-full max-w-7xl mx-auto pt-12 pb-20 relative z-10"
             >
                 {/* HERO SECTION - CENTERED */}
                 <motion.div variants={itemVariants} className="flex flex-col items-center justify-center text-center mb-16">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter text-white">
-                        The Ledger of <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Private Commerce</span>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tighter text-white leading-tight">
+                        Pay Privately. <br className="hidden md:block" />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Nullify the Trace.</span>
                     </h1>
 
                     <div className="w-full max-w-2xl relative">
@@ -146,10 +145,15 @@ const Explorer = () => {
                 </motion.div>
 
                 {/* BENTO GRID LAYOUT */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+                >
 
                     {/* CARD 1: ALEO PRICE / ACTIVITY (Large) */}
-                    <GlassCard className="col-span-1 md:col-span-2 row-span-2 p-8 flex flex-col justify-between group h-full">
+                    <GlassCard variants={itemVariants} className="col-span-1 md:col-span-2 row-span-2 p-8 flex flex-col justify-between group h-full">
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg">A</div>
@@ -168,13 +172,18 @@ const Explorer = () => {
                     </GlassCard>
 
                     {/* STATS FROM DB - Integrated into Grid */}
+                    {/* STATS FROM DB - Integrated into Grid */}
                     {stats.map((stat, i) => (
-                        <GlassCard key={i} className={`p-8 flex flex-col items-start justify-center group relative overflow-hidden hover:border-white/20 ${i === 4 ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}>
+                        <GlassCard
+                            key={i}
+                            variants={scaleIn}
+                            className={`p-8 flex flex-col items-start justify-center group relative overflow-hidden hover:border-white/20 ${i === 4 ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}
+                        >
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block group-hover:text-white transition-colors">{stat.label}</span>
                             <h2 className="text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300 origin-left tracking-tighter">{stat.value}</h2>
                         </GlassCard>
                     ))}
-                </div>
+                </motion.div>
 
 
                 {/* TABLE SECTION */}
@@ -222,7 +231,11 @@ const Explorer = () => {
                                     </tr>
                                 ) : (
                                     filteredTransactions.map((inv, i) => (
-                                        <tr key={i} className="hover:bg-white/5 transition-colors group">
+                                        <motion.tr
+                                            key={i}
+                                            variants={fadeInUp}
+                                            className="hover:bg-white/5 transition-colors group"
+                                        >
                                             <td className="py-4 px-6 font-mono text-neon-accent group-hover:text-neon-primary transition-colors text-sm">
                                                 {inv.invoice_hash.slice(0, 8)}...{inv.invoice_hash.slice(-6)}
                                             </td>
@@ -268,7 +281,7 @@ const Explorer = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                        </tr>
+                                        </motion.tr>
                                     ))
                                 )}
                             </tbody>
@@ -276,7 +289,8 @@ const Explorer = () => {
                     </div>
                 </GlassCard>
             </motion.div>
-        </div>
+        </motion.div>
+
     );
 };
 

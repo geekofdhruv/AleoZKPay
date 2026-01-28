@@ -1,10 +1,11 @@
 import { useWallet } from '@provablehq/aleo-wallet-adaptor-react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import StatusBadge from '../components/StatusBadge';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { useTransactions } from '../hooks/useTransactions';
+import { pageVariants, staggerContainer, fadeInUp } from '../utils/animations';
 
 const Profile = () => {
     const { address } = useWallet();
@@ -18,7 +19,7 @@ const Profile = () => {
     }, [publicKey, fetchTransactions]);
 
     const merchantStats = {
-        balance: 'Loading...', // Ideally fetch real balance from wallet
+        balance: 'Loading...',
         totalSales: transactions
             .filter(t => t.status === 'SETTLED')
             .reduce((acc, curr) => acc + Number(curr.amount || 0), 0)
@@ -26,18 +27,8 @@ const Profile = () => {
         invoices: transactions.length
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+    const containerVariants = staggerContainer;
+    const itemVariants = fadeInUp;
 
     const openExplorer = (txId?: string) => {
         if (txId) {
@@ -45,8 +36,16 @@ const Profile = () => {
         }
     };
 
+
+
     return (
-        <div className="page-container relative min-h-screen">
+        <motion.div
+            className="page-container relative min-h-screen"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+        >
             <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] animate-float" />
                 <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-800/20 rounded-full blur-[100px] animate-float-delayed" />
@@ -68,32 +67,19 @@ const Profile = () => {
 
             <motion.div
                 initial="hidden"
-                animate="visible"
+                animate="show"
                 variants={containerVariants}
                 className="w-full max-w-7xl mx-auto pt-12 relative z-10"
             >
                 {/* HEADER - CENTERED */}
                 <motion.div variants={itemVariants} className="flex flex-col items-center justify-center text-center mb-16">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter text-white">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tighter text-white">
                         Merchant <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Dashboard</span>
                     </h1>
                     <p className="text-gray-300 text-xl max-w-2xl leading-relaxed mb-8">
                         Manage your earnings, track invoices, and monitor your business performance in real-time.
                     </p>
-
-                    {publicKey && (
-                        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center gap-4 shadow-lg">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse" />
-                                <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Wallet Connected</span>
-                            </div>
-                            <div className="h-4 w-[1px] bg-white/10" />
-                            <span className="font-mono text-sm text-white font-medium tracking-wide">{publicKey.slice(0, 10)}...{publicKey.slice(-5)}</span>
-                        </div>
-                    )}
                 </motion.div>
-
-                {/* STATS */}
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                     <GlassCard className="p-8 relative overflow-hidden group hover:border-white/20">
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
@@ -188,7 +174,7 @@ const Profile = () => {
                     </div>
                 </GlassCard>
             </motion.div>
-        </div>
+        </motion.div>
     );
 };
 
