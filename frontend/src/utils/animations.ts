@@ -13,7 +13,7 @@ export const pageVariants: any = {
         filter: "blur(0px)",
         scale: 1,
         transition: {
-            duration: 0.01,
+            duration: 0.4,
             ease: [0.22, 1, 0.36, 1]
         }
     },
