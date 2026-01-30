@@ -143,7 +143,7 @@ app.get('/api/invoice/:hash', async (req, res) => {
 // POST /api/invoices
 // Create new invoice
 app.post('/api/invoices', async (req, res) => {
-    const { invoice_hash, merchant_address, amount, memo, status, invoice_transaction_id } = req.body;
+    const { invoice_hash, merchant_address, amount, memo, status, invoice_transaction_id, salt, invoice_type } = req.body;
 
     if (!invoice_hash || !merchant_address || !amount) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -161,6 +161,9 @@ app.post('/api/invoices', async (req, res) => {
                 memo,
                 status: status || 'PENDING',
                 invoice_transaction_id,  // Invoice creation TX
+                salt,
+                invoice_type: invoice_type || 0, // Default to 0 (Standard)
+                payment_tx_ids: [], // Initialize empty array
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             })
@@ -186,15 +189,37 @@ app.patch('/api/invoices/:hash', async (req, res) => {
     const { status, payment_tx_id, payer_address, block_settled } = req.body;
 
     try {
+        // First, fetch the current invoice to get existing array
+        const { data: current, error: fetchError } = await supabase
+            .from('invoices')
+            .select('payment_tx_ids, invoice_type, status')
+            .eq('invoice_hash', hash)
+            .single();
+
+        if (fetchError) throw fetchError;
+
         const updates = {
-            status,
             updated_at: new Date().toISOString()
         };
 
-        if (payment_tx_id) updates.payment_tx_id = payment_tx_id;
-        if (block_settled) updates.block_settled = block_settled;
+        // Handle Status
+        if (status) updates.status = status;
+
+        // Handle Payer Address
         if (payer_address) {
             updates.payer_address = encrypt(payer_address);
+        }
+
+        // Handle Block Settled
+        if (block_settled) updates.block_settled = block_settled;
+
+        // Handle Payment TX ID (Append to array)
+        if (payment_tx_id) {
+            const currentIds = current.payment_tx_ids || [];
+            // Avoid duplicates
+            if (!currentIds.includes(payment_tx_id)) {
+                updates.payment_tx_ids = [...currentIds, payment_tx_id];
+            }
         }
 
         const { data, error } = await supabase
