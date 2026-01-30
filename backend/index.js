@@ -179,8 +179,16 @@ app.patch('/api/invoices/:hash', async (req, res) => {
     const { status, payment_tx_ids, payer_address, block_settled } = req.body;
 
     try {
+        // First, fetch the current invoice to get existing array
+        const { data: current, error: fetchError } = await supabase
+            .from('invoices')
+            .select('payment_tx_ids, invoice_type, status')
+            .eq('invoice_hash', hash)
+            .single();
+
+        if (fetchError) throw fetchError;
+
         const updates = {
-            status,
             updated_at: new Date().toISOString()
         };
 
@@ -188,6 +196,18 @@ app.patch('/api/invoices/:hash', async (req, res) => {
         if (block_settled) updates.block_settled = block_settled;
         if (payer_address) {
             updates.payer_address = encrypt(payer_address);
+        }
+
+        // Handle Block Settled
+        if (block_settled) updates.block_settled = block_settled;
+
+        // Handle Payment TX ID (Append to array)
+        if (payment_tx_id) {
+            const currentIds = current.payment_tx_ids || [];
+            // Avoid duplicates
+            if (!currentIds.includes(payment_tx_id)) {
+                updates.payment_tx_ids = [...currentIds, payment_tx_id];
+            }
         }
 
         const { data, error } = await supabase
