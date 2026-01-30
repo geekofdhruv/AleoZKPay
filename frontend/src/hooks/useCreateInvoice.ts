@@ -5,7 +5,7 @@ import { TransactionOptions } from '@provablehq/aleo-types';
 import { generateSalt, getInvoiceHashFromMapping, PROGRAM_ID } from '../utils/aleo-utils';
 import { InvoiceData } from '../types/invoice';
 
-export type InvoiceType = 'standard' | 'fundraising';
+export type InvoiceType = 'standard' | 'multipay';
 
 export const useCreateInvoice = () => {
     const { address, executeTransaction, transactionStatus, requestTransactionHistory } = useWallet();
@@ -14,7 +14,6 @@ export const useCreateInvoice = () => {
     const [amount, setAmount] = useState<number | ''>('');
     const [loading, setLoading] = useState(false);
     const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
-    const [expiry, setExpiry] = useState<string>('0');
     const [memo, setMemo] = useState<string>('');
     const [status, setStatus] = useState<string>('');
     const [invoiceType, setInvoiceType] = useState<InvoiceType>('standard');
@@ -52,7 +51,7 @@ export const useCreateInvoice = () => {
                 publicKey,
                 `${amountMicro}u64`,
                 salt,
-                expiry === '0' ? '0u32' : `${Number(expiry)}u32`,
+                '0u32', // expiry hardcoded to 0 (no expiry) as feature is disabled from frontend
                 typeInput
             ];
 
@@ -171,7 +170,7 @@ export const useCreateInvoice = () => {
                                         status: 'PENDING',
                                         invoice_transaction_id: finalTransactionId,
                                         salt: salt,
-                                        invoice_type: invoiceType === 'fundraising' ? 1 : 0
+                                        invoice_type: invoiceType === 'multipay' ? 1 : 0
                                     });
                                     console.log("Invoice saved to DB");
                                 } catch (dbErr) {
@@ -186,7 +185,7 @@ export const useCreateInvoice = () => {
                                     salt
                                 });
                                 if (memo) params.append('memo', memo);
-                                if (invoiceType === 'fundraising') params.append('type', 'fundraising');
+                                if (invoiceType === 'multipay') params.append('type', 'multipay');
 
                                 const link = `${window.location.origin}/pay?${params.toString()}`;
 
@@ -298,8 +297,6 @@ export const useCreateInvoice = () => {
     return {
         amount,
         setAmount,
-        expiry,
-        setExpiry,
         memo,
         setMemo,
         status,
