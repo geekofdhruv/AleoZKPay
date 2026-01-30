@@ -1,4 +1,5 @@
 import React from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 import { InvoiceData } from '../../types/invoice';
 import { GlassCard } from '../ui/GlassCard';
@@ -15,7 +16,6 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({
     resetInvoice
 }) => {
 
-
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = () => {
@@ -29,6 +29,17 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({
             <h3 className="mb-6 text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon-primary to-neon-accent animate-pulse-glow">
                 Invoice Ready!
             </h3>
+
+            <div className="flex justify-center mb-8">
+                <div className="p-4 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <QRCodeSVG
+                        value={invoiceData.link}
+                        size={180}
+                        level="H"
+                        includeMargin={false}
+                    />
+                </div>
+            </div>
             {/* ... other code ... */}
             <div className="mb-8">
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 text-left ml-1">Payment Link</label>
