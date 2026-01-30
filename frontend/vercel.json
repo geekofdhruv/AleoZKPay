@@ -3,18 +3,10 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
