@@ -53,6 +53,7 @@ jobs:
         with:
           deploy_pr_preview: "true"
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_name: "nullpay-backend"
           # Path to your app spec file
           path: .do/app.yaml
 
