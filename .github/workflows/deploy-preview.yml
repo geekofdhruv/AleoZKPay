@@ -54,7 +54,7 @@ jobs:
           deploy_pr_preview: "true"
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           # Path to your app spec file
-          path: backend/app.yaml
+          path: .do/app.yaml
 
       - name: Comment on Failure
         if: failure()

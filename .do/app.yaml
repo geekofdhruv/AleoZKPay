@@ -1,14 +1,13 @@
 # DigitalOcean App Spec for NullPay Backend
 name: nullpay-backend
-region: nyc # You can change this to your preferred region (e.g., fra, sgp, ams)
+region: nyc
 services:
   - name: nullpay-api
     instance_count: 1
-    instance_size_slug: basic-xxs # Lowest tier (~$5/mo)
+    instance_size_slug: basic-xxs
     http_port: 3000
     source_dir: backend
     dockerfile_path: Dockerfile
-    # List of ENV keys (values will be set in DO Dashboard for security)
     envs:
       - key: PORT
         scope: RUN_AND_BUILD_TIME
