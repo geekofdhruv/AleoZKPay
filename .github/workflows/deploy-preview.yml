@@ -53,9 +53,10 @@ jobs:
         with:
           deploy_pr_preview: "true"
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_name: "nullpay-backend"
-          # Path to your app spec file
-          path: .do/app.yaml
+          # Path to your clean app spec file
+          app_spec_location: .do/app.yaml
+          print_build_logs: "true"
+          print_deploy_logs: "true"
 
       - name: Comment on Failure
         if: failure()

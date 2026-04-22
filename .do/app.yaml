@@ -1,0 +1,49 @@
+# DigitalOcean App Spec for NullPay Backend (Clean Version)
+name: nullpay-backend
+services:
+  - name: nullpay-backend
+    github:
+      repo: geekofdhruv/NullPay
+      branch: main
+      deploy_on_push: false
+    source_dir: backend
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: PORT
+        scope: RUN_AND_BUILD_TIME
+        value: "3000"
+      # We list keys only so DigitalOcean knows they exist. 
+      # You will set the real values once in the DO Dashboard.
+      - key: SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: ENCRYPTION_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: RELAYER_PRIVATE_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: PROVABLE_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: PROVABLE_CONSUMER_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: GOOGLE_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: TELEGRAM_BOT_TOKEN
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: ORACLE_PRIVATE_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: BREVO_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
